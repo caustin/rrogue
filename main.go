@@ -10,13 +10,14 @@ import (
 
 // Game holds all data the entire game will need.
 type Game struct {
-	Map         GameMap
-	World       *ecs.Manager
-	WorldTags   map[string]ecs.Tag
-	Components  *Components
-	GameData    GameData
-	Turn        TurnState
-	TurnCounter int
+	Map           GameMap
+	World         *ecs.Manager
+	WorldTags     map[string]ecs.Tag
+	Components    *Components
+	GameData      GameData
+	Turn          TurnState
+	TurnCounter   int
+	AutoMoveState *AutoMoveState
 }
 
 // NewGame creates a new Game Object and initializes the data
