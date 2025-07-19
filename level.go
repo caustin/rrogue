@@ -66,23 +66,24 @@ func loadTileImages() {
 }
 
 // DrawLevel draws the level onto the screen.
-func (level *Level) DrawLevel(screen *ebiten.Image) {
-	gd := NewGameData()
+func (level *Level) DrawLevel(screen *ebiten.Image, gd GameData) {
 	for x := 0; x < gd.ScreenWidth; x++ {
 		for y := 0; y < levelHeight; y++ {
 			idx := level.GetIndexFromXY(x, y)
 			tile := level.Tiles[idx]
 			isVis := level.PlayerVisible.IsVisible(x, y)
 			if isVis {
-				op := &ebiten.DrawImageOptions{}
+				op := GetDrawOptions()
 				op.GeoM.Translate(float64(tile.PixelX), float64(tile.PixelY))
 				screen.DrawImage(tile.Image, op)
+				PutDrawOptions(op)
 				level.Tiles[idx].IsRevealed = true
 			} else if tile.IsRevealed == true {
-				op := &ebiten.DrawImageOptions{}
+				op := GetDrawOptions()
 				op.GeoM.Translate(float64(tile.PixelX), float64(tile.PixelY))
 				op.ColorM.Translate(100, 100, 100, 0.35)
 				screen.DrawImage(tile.Image, op)
+				PutDrawOptions(op)
 			}
 		}
 	}

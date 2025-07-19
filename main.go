@@ -14,6 +14,7 @@ type Game struct {
 	World       *ecs.Manager
 	WorldTags   map[string]ecs.Tag
 	Components  *Components
+	GameData    GameData
 	Turn        TurnState
 	TurnCounter int
 }
@@ -23,6 +24,7 @@ type Game struct {
 func NewGame() *Game {
 	g := &Game{}
 	g.Map = NewGameMap()
+	g.GameData = NewGameData()
 	world, tags, components := InitializeWorld(g.Map.CurrentLevel)
 
 	g.WorldTags = tags
@@ -57,7 +59,7 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	//Draw the Map
 	level := g.Map.CurrentLevel
-	level.DrawLevel(screen)
+	level.DrawLevel(screen, g.GameData)
 	ProcessRenderables(g, level, screen)
 	ProcessUserLog(g, screen)
 	ProcessHUD(g, screen)
@@ -66,8 +68,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 // Layout will return the screen dimensions.
 func (g *Game) Layout(w, h int) (int, int) {
-	gd := NewGameData()
-	return gd.TileWidth * gd.ScreenWidth, gd.TileHeight * gd.ScreenHeight
+	return g.GameData.TileWidth * g.GameData.ScreenWidth, g.GameData.TileHeight * g.GameData.ScreenHeight
 
 }
 
