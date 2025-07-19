@@ -45,6 +45,8 @@ func (g *Game) Update() error {
 	case ProcessingMonsterTurn:
 		UpdateMonster(g)
 		g.Turn = WaitingForPlayerInput
+	default:
+		panic("unhandled default case")
 	}
 
 	return nil
