@@ -13,6 +13,7 @@ type Game struct {
 	Map         GameMap
 	World       *ecs.Manager
 	WorldTags   map[string]ecs.Tag
+	Components  *Components
 	Turn        TurnState
 	TurnCounter int
 }
@@ -22,10 +23,11 @@ type Game struct {
 func NewGame() *Game {
 	g := &Game{}
 	g.Map = NewGameMap()
-	world, tags := InitializeWorld(g.Map.CurrentLevel)
+	world, tags, components := InitializeWorld(g.Map.CurrentLevel)
 
 	g.WorldTags = tags
 	g.World = world
+	g.Components = components
 	g.Turn = WaitingForPlayerInput
 	g.TurnCounter = 0
 	return g

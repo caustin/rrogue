@@ -7,29 +7,37 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
-var position *ecs.Component
-var renderable *ecs.Component
-var monster *ecs.Component
-var health *ecs.Component
-var meleeWeapon *ecs.Component
-var armor *ecs.Component
-var name *ecs.Component
-var userMessage *ecs.Component
+// Components holds all ECS component references
+type Components struct {
+	Position    *ecs.Component
+	Renderable  *ecs.Component
+	Monster     *ecs.Component
+	Health      *ecs.Component
+	MeleeWeapon *ecs.Component
+	Armor       *ecs.Component
+	Name        *ecs.Component
+	UserMessage *ecs.Component
+	Player      *ecs.Component
+}
 
-func InitializeWorld(startingLevel Level) (*ecs.Manager, map[string]ecs.Tag) {
+func InitializeWorld(startingLevel Level) (*ecs.Manager, map[string]ecs.Tag, *Components) {
 	tags := make(map[string]ecs.Tag)
 	manager := ecs.NewManager()
 
-	player := manager.NewComponent()
-	position = manager.NewComponent()
-	renderable = manager.NewComponent()
+	// Create components struct
+	components := &Components{
+		Player:      manager.NewComponent(),
+		Position:    manager.NewComponent(),
+		Renderable:  manager.NewComponent(),
+		Monster:     manager.NewComponent(),
+		Health:      manager.NewComponent(),
+		MeleeWeapon: manager.NewComponent(),
+		Armor:       manager.NewComponent(),
+		Name:        manager.NewComponent(),
+		UserMessage: manager.NewComponent(),
+	}
+
 	movable := manager.NewComponent()
-	monster = manager.NewComponent()
-	health = manager.NewComponent()
-	meleeWeapon = manager.NewComponent()
-	armor = manager.NewComponent()
-	name = manager.NewComponent()
-	userMessage = manager.NewComponent()
 
 	playerImg, _, err := ebitenutil.NewImageFromFile("assets/player.png")
 	if err != nil {
@@ -49,32 +57,32 @@ func InitializeWorld(startingLevel Level) (*ecs.Manager, map[string]ecs.Tag) {
 	x, y := startingRoom.Center()
 
 	manager.NewEntity().
-		AddComponent(player, Player{}).
-		AddComponent(renderable, &Renderable{
+		AddComponent(components.Player, Player{}).
+		AddComponent(components.Renderable, &Renderable{
 			Image: playerImg,
 		}).
 		AddComponent(movable, Movable{}).
-		AddComponent(position, &Position{
+		AddComponent(components.Position, &Position{
 			X: x,
 			Y: y,
 		}).
-		AddComponent(health, &Health{
+		AddComponent(components.Health, &Health{
 			MaxHealth:     30,
 			CurrentHealth: 30,
 		}).
-		AddComponent(meleeWeapon, &MeleeWeapon{
+		AddComponent(components.MeleeWeapon, &MeleeWeapon{
 			Name:          "Battle Axe",
 			MinimumDamage: 10,
 			MaximumDamage: 20,
 			ToHitBonus:    3,
 		}).
-		AddComponent(armor, &Armor{
+		AddComponent(components.Armor, &Armor{
 			Name:       "Plate Armor",
 			Defense:    15,
 			ArmorClass: 18,
 		}).
-		AddComponent(name, &Name{Label: "Player"}).
-		AddComponent(userMessage, &UserMessage{
+		AddComponent(components.Name, &Name{Label: "Player"}).
+		AddComponent(components.UserMessage, &UserMessage{
 			AttackMessage:    "",
 			DeadMessage:      "",
 			GameStateMessage: "",
@@ -90,62 +98,62 @@ func InitializeWorld(startingLevel Level) (*ecs.Manager, map[string]ecs.Tag) {
 
 			if mobSpawn == 1 {
 				manager.NewEntity().
-					AddComponent(monster, &Monster{}).
-					AddComponent(renderable, &Renderable{
+					AddComponent(components.Monster, &Monster{}).
+					AddComponent(components.Renderable, &Renderable{
 						Image: orcImg,
 					}).
-					AddComponent(position, &Position{
+					AddComponent(components.Position, &Position{
 						X: mX,
 						Y: mY,
 					}).
-					AddComponent(health, &Health{
+					AddComponent(components.Health, &Health{
 						MaxHealth:     30,
 						CurrentHealth: 30,
 					}).
-					AddComponent(meleeWeapon, &MeleeWeapon{
+					AddComponent(components.MeleeWeapon, &MeleeWeapon{
 						Name:          "Machete",
 						MinimumDamage: 4,
 						MaximumDamage: 8,
 						ToHitBonus:    1,
 					}).
-					AddComponent(armor, &Armor{
+					AddComponent(components.Armor, &Armor{
 						Name:       "Leather",
 						Defense:    5,
 						ArmorClass: 6,
 					}).
-					AddComponent(name, &Name{Label: "Orc"}).
-					AddComponent(userMessage, &UserMessage{
+					AddComponent(components.Name, &Name{Label: "Orc"}).
+					AddComponent(components.UserMessage, &UserMessage{
 						AttackMessage:    "",
 						DeadMessage:      "",
 						GameStateMessage: "",
 					})
 			} else {
 				manager.NewEntity().
-					AddComponent(monster, &Monster{}).
-					AddComponent(renderable, &Renderable{
+					AddComponent(components.Monster, &Monster{}).
+					AddComponent(components.Renderable, &Renderable{
 						Image: skellyImg,
 					}).
-					AddComponent(position, &Position{
+					AddComponent(components.Position, &Position{
 						X: mX,
 						Y: mY,
 					}).
-					AddComponent(health, &Health{
+					AddComponent(components.Health, &Health{
 						MaxHealth:     10,
 						CurrentHealth: 10,
 					}).
-					AddComponent(meleeWeapon, &MeleeWeapon{
+					AddComponent(components.MeleeWeapon, &MeleeWeapon{
 						Name:          "Short Sword",
 						MinimumDamage: 2,
 						MaximumDamage: 6,
 						ToHitBonus:    0,
 					}).
-					AddComponent(armor, &Armor{
+					AddComponent(components.Armor, &Armor{
 						Name:       "Bone",
 						Defense:    3,
 						ArmorClass: 4,
 					}).
-					AddComponent(name, &Name{Label: "Skeleton"}).
-					AddComponent(userMessage, &UserMessage{
+					AddComponent(components.Name, &Name{Label: "Skeleton"}).
+					AddComponent(components.UserMessage, &UserMessage{
 						AttackMessage:    "",
 						DeadMessage:      "",
 						GameStateMessage: "",
@@ -155,17 +163,17 @@ func InitializeWorld(startingLevel Level) (*ecs.Manager, map[string]ecs.Tag) {
 		}
 	}
 
-	players := ecs.BuildTag(player, position, health, meleeWeapon, armor, name, userMessage)
+	players := ecs.BuildTag(components.Player, components.Position, components.Health, components.MeleeWeapon, components.Armor, components.Name, components.UserMessage)
 	tags["players"] = players
 
-	renderables := ecs.BuildTag(renderable, position)
+	renderables := ecs.BuildTag(components.Renderable, components.Position)
 	tags["renderables"] = renderables
 
-	monsters := ecs.BuildTag(monster, position, health, meleeWeapon, armor, name, userMessage)
+	monsters := ecs.BuildTag(components.Monster, components.Position, components.Health, components.MeleeWeapon, components.Armor, components.Name, components.UserMessage)
 	tags["monsters"] = monsters
 
-	messengers := ecs.BuildTag(userMessage)
+	messengers := ecs.BuildTag(components.UserMessage)
 	tags["messengers"] = messengers
 
-	return manager, tags
+	return manager, tags, components
 }

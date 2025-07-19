@@ -7,7 +7,7 @@ import (
 
 // GetRandomBetween returns a number between the two numbers inclusive.
 func GetRandomBetween(low int, high int) int {
-	return GetDiceRoll(high-low) + high
+	return GetDiceRoll(high-low+1) + low - 1
 }
 
 // GetRandomInt returns an integer from 0 to the number - 1
