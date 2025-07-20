@@ -1,6 +1,8 @@
-package main
+package game
 
 import (
+	"github.com/caustin/rrogue/components"
+	level2 "github.com/caustin/rrogue/level"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -84,7 +86,7 @@ func TakePlayerAction(g *Game) bool {
 	level := g.Map.CurrentLevel
 
 	for _, result := range g.World.Query(players) {
-		pos := result.Components[g.Components.Position].(*Position)
+		pos := result.Components[g.Components.Position].(*components.Position)
 		index := level.GetIndexFromXY(pos.X+x, pos.Y+y)
 
 		tile := level.Tiles[index]
@@ -96,9 +98,9 @@ func TakePlayerAction(g *Game) bool {
 			level.PlayerVisible.Compute(level, pos.X, pos.Y, 8)
 
 		} else if x != 0 || y != 0 {
-			if level.Tiles[index].TileType != WALL {
+			if level.Tiles[index].TileType != level2.WALL {
 				//Its a tile with a monster -- Fight it
-				monsterPosition := Position{X: pos.X + x, Y: pos.Y + y}
+				monsterPosition := components.Position{X: pos.X + x, Y: pos.Y + y}
 
 				AttackSystem(g, pos, &monsterPosition)
 			}
@@ -136,7 +138,7 @@ func processAutoMovement(g *Game) bool {
 	players := g.WorldTags["players"]
 
 	for _, result := range g.World.Query(players) {
-		pos := result.Components[g.Components.Position].(*Position)
+		pos := result.Components[g.Components.Position].(*components.Position)
 
 		dx := g.AutoMoveState.Direction.dx
 		dy := g.AutoMoveState.Direction.dy
@@ -147,7 +149,7 @@ func processAutoMovement(g *Game) bool {
 		nextIndex := level.GetIndexFromXY(nextX, nextY)
 
 		// Stop if we can't move (blocked by wall)
-		if level.Tiles[nextIndex].TileType == WALL {
+		if level.Tiles[nextIndex].TileType == level2.WALL {
 			g.AutoMoveState.Active = false
 			return false
 		}
@@ -155,7 +157,7 @@ func processAutoMovement(g *Game) bool {
 		// Stop if there's a monster - attack it
 		if level.Tiles[nextIndex].Blocked {
 			g.AutoMoveState.Active = false
-			monsterPosition := Position{X: nextX, Y: nextY}
+			monsterPosition := components.Position{X: nextX, Y: nextY}
 			AttackSystem(g, pos, &monsterPosition)
 			return true
 		}
@@ -186,7 +188,7 @@ func executePlayerMove(g *Game, dx, dy int) bool {
 	level := g.Map.CurrentLevel
 
 	for _, result := range g.World.Query(players) {
-		pos := result.Components[g.Components.Position].(*Position)
+		pos := result.Components[g.Components.Position].(*components.Position)
 		index := level.GetIndexFromXY(pos.X+dx, pos.Y+dy)
 
 		tile := level.Tiles[index]
@@ -198,9 +200,9 @@ func executePlayerMove(g *Game, dx, dy int) bool {
 			level.Tiles[index].Blocked = true
 			level.PlayerVisible.Compute(level, pos.X, pos.Y, 8)
 			return true
-		} else if tile.TileType != WALL {
+		} else if tile.TileType != level2.WALL {
 			// Attack monster
-			monsterPosition := Position{X: pos.X + dx, Y: pos.Y + dy}
+			monsterPosition := components.Position{X: pos.X + dx, Y: pos.Y + dy}
 			AttackSystem(g, pos, &monsterPosition)
 			return true
 		}
@@ -210,11 +212,11 @@ func executePlayerMove(g *Game, dx, dy int) bool {
 }
 
 // isMonsterVisible checks if any monster is visible from the current position
-func isMonsterVisible(g *Game, level Level, playerPos *Position) bool {
+func isMonsterVisible(g *Game, level level2.Level, playerPos *components.Position) bool {
 	monsters := g.WorldTags["monsters"]
 
 	for _, monster := range g.World.Query(monsters) {
-		monsterPos := monster.Components[g.Components.Position].(*Position)
+		monsterPos := monster.Components[g.Components.Position].(*components.Position)
 		if level.PlayerVisible.IsVisible(monsterPos.X, monsterPos.Y) {
 			return true
 		}
@@ -224,7 +226,7 @@ func isMonsterVisible(g *Game, level Level, playerPos *Position) bool {
 
 // isAtJunctionOrRoom checks if the player is at a corridor junction or in a room
 // A junction/room is defined as having more than 2 walkable adjacent tiles
-func isAtJunctionOrRoom(level Level, pos *Position) bool {
+func isAtJunctionOrRoom(level level2.Level, pos *components.Position) bool {
 	walkableCount := 0
 
 	// Check all 4 cardinal directions
@@ -248,7 +250,7 @@ func isAtJunctionOrRoom(level Level, pos *Position) bool {
 		tile := level.Tiles[index]
 
 		// Count walkable tiles (floor tiles that aren't blocked by monsters)
-		if tile.TileType == FLOOR && !tile.Blocked {
+		if tile.TileType == level2.FLOOR && !tile.Blocked {
 			walkableCount++
 		}
 	}

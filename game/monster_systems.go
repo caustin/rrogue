@@ -1,20 +1,22 @@
-package main
+package game
 
 import (
+	"github.com/caustin/rrogue/components"
+	"github.com/caustin/rrogue/level"
 	"github.com/norendren/go-fov/fov"
 )
 
 func UpdateMonster(game *Game) {
 	l := game.Map.CurrentLevel
-	playerPosition := Position{}
+	playerPosition := components.Position{}
 
 	for _, plr := range game.World.Query(game.WorldTags["players"]) {
-		pos := plr.Components[game.Components.Position].(*Position)
+		pos := plr.Components[game.Components.Position].(*components.Position)
 		playerPosition.X = pos.X
 		playerPosition.Y = pos.Y
 	}
 	for _, result := range game.World.Query(game.WorldTags["monsters"]) {
-		pos := result.Components[game.Components.Position].(*Position)
+		pos := result.Components[game.Components.Position].(*components.Position)
 		//mon := result.Components[monster].(*Monster)
 
 		monsterSees := fov.New()
@@ -26,7 +28,7 @@ func UpdateMonster(game *Game) {
 				AttackSystem(game, pos, &playerPosition)
 
 			} else {
-				astar := AStar{}
+				astar := level.AStar{}
 				path := astar.GetPath(l, pos, &playerPosition)
 				if len(path) > 1 {
 					nextTile := l.Tiles[l.GetIndexFromXY(path[1].X, path[1].Y)]

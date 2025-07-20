@@ -1,4 +1,4 @@
-package main
+package utils
 
 type Rect struct {
 	X1 int

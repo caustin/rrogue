@@ -1,6 +1,9 @@
-package main
+package level
 
-import "testing"
+import (
+	"github.com/caustin/rrogue/config"
+	"testing"
+)
 
 func TestGetIndexFromXY(t *testing.T) {
 	level := Level{}
@@ -48,7 +51,7 @@ func TestGetIndexFromXY(t *testing.T) {
 
 func TestInBounds(t *testing.T) {
 	level := Level{}
-	gd := NewGameData()
+	gd := config.NewGameData()
 	levelHeight = gd.ScreenHeight - gd.UIHeight // Set global variable
 
 	tests := []struct {
@@ -118,7 +121,7 @@ func TestInBounds(t *testing.T) {
 
 func TestIsOpaque(t *testing.T) {
 	level := Level{}
-	gd := NewGameData()
+	gd := config.NewGameData()
 	levelHeight := gd.ScreenHeight - gd.UIHeight
 
 	// Create tiles for testing
@@ -231,7 +234,7 @@ func TestMinMax(t *testing.T) {
 
 func TestCreateRoom(t *testing.T) {
 	level := Level{}
-	gd := NewGameData()
+	gd := config.NewGameData()
 	levelHeight := gd.ScreenHeight - gd.UIHeight
 
 	// Initialize tiles as walls
