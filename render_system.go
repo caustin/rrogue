@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/caustin/rrogue/components"
-	"github.com/caustin/rrogue/game"
 	"github.com/caustin/rrogue/level"
+	"github.com/caustin/rrogue/utils"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -15,11 +15,11 @@ func ProcessRenderables(g *Game, level level.Level, screen *ebiten.Image) {
 		if level.PlayerVisible.IsVisible(pos.X, pos.Y) {
 			index := level.GetIndexFromXY(pos.X, pos.Y)
 			tile := level.Tiles[index]
-			op := game.GetDrawOptions()
+			op := utils.GetDrawOptions()
 
 			op.GeoM.Translate(float64(tile.PixelX), float64(tile.PixelY))
 			screen.DrawImage(img, op)
-			game.PutDrawOptions(op)
+			utils.PutDrawOptions(op)
 		}
 
 	}

@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/caustin/rrogue/components"
-	"github.com/caustin/rrogue/game"
+	"github.com/caustin/rrogue/config"
 	"image/color"
 	"log"
 
@@ -42,7 +42,7 @@ func ProcessHUD(g *Game, screen *ebiten.Image) {
 			log.Fatal(err)
 		}
 	}
-	gd := game.NewGameData()
+	gd := config.NewGameData()
 
 	uiY := (gd.ScreenHeight - gd.UIHeight) * gd.TileHeight
 	uiX := (gd.ScreenWidth * gd.TileWidth) / 2

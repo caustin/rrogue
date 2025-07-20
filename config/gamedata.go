@@ -1,4 +1,4 @@
-package game
+package config
 
 // GameData holds the values for the size of elements within the game
 type GameData struct {

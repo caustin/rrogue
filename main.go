@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/caustin/rrogue/config"
 	"github.com/caustin/rrogue/game"
 	_ "image/png"
 	"log"
@@ -11,12 +12,12 @@ import (
 
 // Game holds all data the entire game will need.
 type Game struct {
-	Map           GameMap
+	Map           game.GameMap
 	World         *ecs.Manager
 	WorldTags     map[string]ecs.Tag
-	Components    *ComponentReferences
-	GameData      game.GameData
-	Turn          TurnState
+	Components    *game.ComponentReferences
+	GameData      config.GameData
+	Turn          game.TurnState
 	TurnCounter   int
 	AutoMoveState *AutoMoveState
 }
@@ -25,14 +26,14 @@ type Game struct {
 // This is a pretty solid refactor candidate for later
 func NewGame() *Game {
 	g := &Game{}
-	g.Map = NewGameMap()
-	g.GameData = game.NewGameData()
-	world, tags, components := InitializeWorld(g.Map.CurrentLevel)
+	g.Map = game.NewGameMap()
+	g.GameData = config.NewGameData()
+	world, tags, components := game.InitializeWorld(g.Map.CurrentLevel)
 
 	g.WorldTags = tags
 	g.World = world
 	g.Components = components
-	g.Turn = WaitingForPlayerInput
+	g.Turn = game.WaitingForPlayerInput
 	g.TurnCounter = 0
 	return g
 
@@ -41,14 +42,14 @@ func NewGame() *Game {
 // Update is called each tic.
 func (g *Game) Update() error {
 	switch g.Turn {
-	case WaitingForPlayerInput:
+	case game.WaitingForPlayerInput:
 		if TakePlayerAction(g) {
-			g.Turn = ProcessingMonsterTurn
+			g.Turn = game.ProcessingMonsterTurn
 			g.TurnCounter++
 		}
-	case ProcessingMonsterTurn:
+	case game.ProcessingMonsterTurn:
 		UpdateMonster(g)
-		g.Turn = WaitingForPlayerInput
+		g.Turn = game.WaitingForPlayerInput
 	default:
 		panic("unhandled default case")
 	}

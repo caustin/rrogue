@@ -3,7 +3,7 @@ package level
 import (
 	"errors"
 	"github.com/caustin/rrogue/components"
-	"github.com/caustin/rrogue/game"
+	"github.com/caustin/rrogue/config"
 	"reflect"
 )
 
@@ -63,7 +63,7 @@ type AStar struct{}
 // GetPath takes a level, the starting position and an ending position (the goal) and returns
 // a list of Positions which is the path between the points.
 func (as AStar) GetPath(level Level, start *components.Position, end *components.Position) []components.Position {
-	gd := game.NewGameData()
+	gd := config.NewGameData()
 
 	openList := make([]*node, 0)
 	closedList := make([]*node, 0)

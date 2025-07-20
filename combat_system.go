@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/caustin/rrogue/components"
+	"github.com/caustin/rrogue/game"
 	"github.com/caustin/rrogue/utils"
 
 	"github.com/bytearena/ecs"
@@ -75,7 +76,7 @@ func AttackSystem(g *Game, attackerPosition *components.Position, defenderPositi
 			defenderMessage.DeadMessage = fmt.Sprintf("%s has died!\n", defenderName)
 			if defenderName == "Player" {
 				defenderMessage.GameStateMessage = "Game Over!\n"
-				g.Turn = GameOver
+				g.Turn = game.GameOver
 			} else {
 				// Monster died - clean up tile and dispose entity
 				level := g.Map.CurrentLevel

@@ -1,7 +1,7 @@
 package level
 
 import (
-	"github.com/caustin/rrogue/game"
+	"github.com/caustin/rrogue/config"
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -69,24 +69,24 @@ func loadTileImages() {
 }
 
 // DrawLevel draws the level onto the screen.
-func (level *Level) DrawLevel(screen *ebiten.Image, gd game.GameData) {
+func (level *Level) DrawLevel(screen *ebiten.Image, gd config.GameData) {
 	for x := 0; x < gd.ScreenWidth; x++ {
 		for y := 0; y < levelHeight; y++ {
 			idx := level.GetIndexFromXY(x, y)
 			tile := level.Tiles[idx]
 			isVis := level.PlayerVisible.IsVisible(x, y)
 			if isVis {
-				op := game.GetDrawOptions()
+				op := utils.GetDrawOptions()
 				op.GeoM.Translate(float64(tile.PixelX), float64(tile.PixelY))
 				screen.DrawImage(tile.Image, op)
-				game.PutDrawOptions(op)
+				utils.PutDrawOptions(op)
 				level.Tiles[idx].IsRevealed = true
 			} else if tile.IsRevealed == true {
-				op := game.GetDrawOptions()
+				op := utils.GetDrawOptions()
 				op.GeoM.Translate(float64(tile.PixelX), float64(tile.PixelY))
 				op.ColorM.Translate(100, 100, 100, 0.35)
 				screen.DrawImage(tile.Image, op)
-				game.PutDrawOptions(op)
+				utils.PutDrawOptions(op)
 			}
 		}
 	}
@@ -96,7 +96,7 @@ func (level *Level) DrawLevel(screen *ebiten.Image, gd game.GameData) {
 // GetIndexFromXY gets the index of the map array from a given X,Y TILE coordinate.
 // This coordinate is logical tiles, not pixels.
 func (level *Level) GetIndexFromXY(x int, y int) int {
-	gd := game.NewGameData()
+	gd := config.NewGameData()
 	return (y * gd.ScreenWidth) + x
 }
 
@@ -106,7 +106,7 @@ func (level *Level) GenerateLevelTiles() {
 	MAX_SIZE := 10
 	MAX_ROOMS := 30
 
-	gd := game.NewGameData()
+	gd := config.NewGameData()
 	levelHeight = gd.ScreenHeight - gd.UIHeight
 	tiles := level.createTiles()
 	level.Tiles = tiles
@@ -152,7 +152,7 @@ func (level *Level) GenerateLevelTiles() {
 }
 
 func (level *Level) createHorizontalTunnel(x1 int, x2 int, y int) {
-	gd := game.NewGameData()
+	gd := config.NewGameData()
 	for x := min(x1, x2); x < max(x1, x2)+1; x++ {
 		index := level.GetIndexFromXY(x, y)
 		if index > 0 && index < gd.ScreenWidth*levelHeight {
@@ -165,7 +165,7 @@ func (level *Level) createHorizontalTunnel(x1 int, x2 int, y int) {
 }
 
 func (level *Level) createVerticalTunnel(y1 int, y2 int, x int) {
-	gd := game.NewGameData()
+	gd := config.NewGameData()
 	for y := min(y1, y2); y < max(y1, y2)+1; y++ {
 		index := level.GetIndexFromXY(x, y)
 		if index > 0 && index < gd.ScreenWidth*levelHeight {
@@ -179,7 +179,7 @@ func (level *Level) createVerticalTunnel(y1 int, y2 int, x int) {
 
 // createTiles creates a map of all walls as a baseline for carving out a level.
 func (level *Level) createTiles() []*MapTile {
-	gd := game.NewGameData()
+	gd := config.NewGameData()
 	tiles := make([]*MapTile, levelHeight*gd.ScreenWidth)
 	index := 0
 	for x := 0; x < gd.ScreenWidth; x++ {
@@ -211,7 +211,7 @@ func (level *Level) createRoom(room utils.Rect) {
 	}
 }
 func (level Level) InBounds(x, y int) bool {
-	gd := game.NewGameData()
+	gd := config.NewGameData()
 	if x < 0 || x > gd.ScreenWidth || y < 0 || y > levelHeight {
 		return false
 	}

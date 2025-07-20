@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/caustin/rrogue/components"
-	"github.com/caustin/rrogue/game"
+	"github.com/caustin/rrogue/config"
 	"image/color"
 	"log"
 
@@ -42,7 +42,7 @@ func ProcessUserLog(g *Game, screen *ebiten.Image) {
 			log.Fatal(err)
 		}
 	}
-	gd := game.NewGameData()
+	gd := config.NewGameData()
 
 	uiLocation := (gd.ScreenHeight - gd.UIHeight) * gd.TileHeight
 	var fontX = 16
