@@ -1,9 +1,8 @@
-package main
+package components
 
 import (
-	"math"
-
 	"github.com/hajimehoshi/ebiten/v2"
+	"math"
 )
 
 type Player struct{}

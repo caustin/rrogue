@@ -1,42 +1,45 @@
 package main
 
-import "testing"
+import (
+	"github.com/caustin/rrogue/components"
+	"testing"
+)
 
 func TestManhattanDistance(t *testing.T) {
 	tests := []struct {
 		name     string
-		pos1     Position
-		pos2     Position
+		pos1     components.Position
+		pos2     components.Position
 		expected int
 	}{
 		{
 			name:     "same position",
-			pos1:     Position{X: 5, Y: 5},
-			pos2:     Position{X: 5, Y: 5},
+			pos1:     components.Position{X: 5, Y: 5},
+			pos2:     components.Position{X: 5, Y: 5},
 			expected: 0,
 		},
 		{
 			name:     "adjacent horizontal",
-			pos1:     Position{X: 5, Y: 5},
-			pos2:     Position{X: 6, Y: 5},
+			pos1:     components.Position{X: 5, Y: 5},
+			pos2:     components.Position{X: 6, Y: 5},
 			expected: 1,
 		},
 		{
 			name:     "adjacent vertical",
-			pos1:     Position{X: 5, Y: 5},
-			pos2:     Position{X: 5, Y: 6},
+			pos1:     components.Position{X: 5, Y: 5},
+			pos2:     components.Position{X: 5, Y: 6},
 			expected: 1,
 		},
 		{
 			name:     "diagonal distance",
-			pos1:     Position{X: 0, Y: 0},
-			pos2:     Position{X: 3, Y: 4},
+			pos1:     components.Position{X: 0, Y: 0},
+			pos2:     components.Position{X: 3, Y: 4},
 			expected: 7,
 		},
 		{
 			name:     "negative coordinates",
-			pos1:     Position{X: -2, Y: -3},
-			pos2:     Position{X: 1, Y: 2},
+			pos1:     components.Position{X: -2, Y: -3},
+			pos2:     components.Position{X: 1, Y: 2},
 			expected: 8,
 		},
 	}
@@ -60,38 +63,38 @@ func TestManhattanDistance(t *testing.T) {
 func TestPositionEquality(t *testing.T) {
 	tests := []struct {
 		name     string
-		pos1     Position
-		pos2     Position
+		pos1     components.Position
+		pos2     components.Position
 		expected bool
 	}{
 		{
 			name:     "equal positions",
-			pos1:     Position{X: 5, Y: 5},
-			pos2:     Position{X: 5, Y: 5},
+			pos1:     components.Position{X: 5, Y: 5},
+			pos2:     components.Position{X: 5, Y: 5},
 			expected: true,
 		},
 		{
 			name:     "different x",
-			pos1:     Position{X: 5, Y: 5},
-			pos2:     Position{X: 6, Y: 5},
+			pos1:     components.Position{X: 5, Y: 5},
+			pos2:     components.Position{X: 6, Y: 5},
 			expected: false,
 		},
 		{
 			name:     "different y",
-			pos1:     Position{X: 5, Y: 5},
-			pos2:     Position{X: 5, Y: 6},
+			pos1:     components.Position{X: 5, Y: 5},
+			pos2:     components.Position{X: 5, Y: 6},
 			expected: false,
 		},
 		{
 			name:     "completely different",
-			pos1:     Position{X: 1, Y: 2},
-			pos2:     Position{X: 8, Y: 9},
+			pos1:     components.Position{X: 1, Y: 2},
+			pos2:     components.Position{X: 8, Y: 9},
 			expected: false,
 		},
 		{
 			name:     "negative coordinates equal",
-			pos1:     Position{X: -5, Y: -10},
-			pos2:     Position{X: -5, Y: -10},
+			pos1:     components.Position{X: -5, Y: -10},
+			pos2:     components.Position{X: -5, Y: -10},
 			expected: true,
 		},
 	}
@@ -149,7 +152,7 @@ func TestHealthComponent(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			health := Health{
+			health := components.Health{
 				MaxHealth:     tt.maxHealth,
 				CurrentHealth: tt.currentHealth,
 			}
@@ -170,7 +173,7 @@ func TestHealthComponent(t *testing.T) {
 }
 
 func TestMeleeWeaponComponent(t *testing.T) {
-	weapon := MeleeWeapon{
+	weapon := components.MeleeWeapon{
 		Name:          "Test Sword",
 		MinimumDamage: 5,
 		MaximumDamage: 15,
@@ -201,7 +204,7 @@ func TestMeleeWeaponComponent(t *testing.T) {
 }
 
 func TestArmorComponent(t *testing.T) {
-	armor := Armor{
+	armor := components.Armor{
 		Name:       "Test Plate",
 		Defense:    10,
 		ArmorClass: 15,
@@ -222,7 +225,7 @@ func TestArmorComponent(t *testing.T) {
 }
 
 func TestUserMessageComponent(t *testing.T) {
-	msg := UserMessage{
+	msg := components.UserMessage{
 		AttackMessage:    "Player attacks!",
 		DeadMessage:      "Monster dies!",
 		GameStateMessage: "Game Over!",

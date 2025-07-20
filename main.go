@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/caustin/rrogue/game"
 	_ "image/png"
 	"log"
 
@@ -13,8 +14,8 @@ type Game struct {
 	Map           GameMap
 	World         *ecs.Manager
 	WorldTags     map[string]ecs.Tag
-	Components    *Components
-	GameData      GameData
+	Components    *ComponentReferences
+	GameData      game.GameData
 	Turn          TurnState
 	TurnCounter   int
 	AutoMoveState *AutoMoveState
@@ -25,7 +26,7 @@ type Game struct {
 func NewGame() *Game {
 	g := &Game{}
 	g.Map = NewGameMap()
-	g.GameData = NewGameData()
+	g.GameData = game.NewGameData()
 	world, tags, components := InitializeWorld(g.Map.CurrentLevel)
 
 	g.WorldTags = tags

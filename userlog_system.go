@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/caustin/rrogue/components"
+	"github.com/caustin/rrogue/game"
 	"image/color"
 	"log"
 
@@ -40,7 +42,7 @@ func ProcessUserLog(g *Game, screen *ebiten.Image) {
 			log.Fatal(err)
 		}
 	}
-	gd := NewGameData()
+	gd := game.NewGameData()
 
 	uiLocation := (gd.ScreenHeight - gd.UIHeight) * gd.TileHeight
 	var fontX = 16
@@ -52,7 +54,7 @@ func ProcessUserLog(g *Game, screen *ebiten.Image) {
 	anyMessages := false
 
 	for _, m := range g.World.Query(g.WorldTags["messengers"]) {
-		messages := m.Components[g.Components.UserMessage].(*UserMessage)
+		messages := m.Components[g.Components.UserMessage].(*components.UserMessage)
 		if messages.AttackMessage != "" {
 			tmpMessages = append(tmpMessages, messages.AttackMessage)
 			anyMessages = true
@@ -61,7 +63,7 @@ func ProcessUserLog(g *Game, screen *ebiten.Image) {
 		}
 	}
 	for _, m := range g.World.Query(g.WorldTags["messengers"]) {
-		messages := m.Components[g.Components.UserMessage].(*UserMessage)
+		messages := m.Components[g.Components.UserMessage].(*components.UserMessage)
 		if messages.DeadMessage != "" {
 			tmpMessages = append(tmpMessages, messages.DeadMessage)
 			anyMessages = true
