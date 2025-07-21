@@ -2,7 +2,6 @@ package game
 
 import (
 	"fmt"
-	"github.com/caustin/rrogue/components"
 	"github.com/caustin/rrogue/config"
 	"image/color"
 	"log"
@@ -52,19 +51,19 @@ func ProcessHUD(g *Game, screen *ebiten.Image) {
 	op.GeoM.Translate(float64(uiX), float64(uiY))
 	screen.DrawImage(userLogImg, op)
 
-	for _, p := range g.World.Query(g.WorldTags["players"]) {
-		h := p.Components[g.Components.Health].(*components.Health)
+	for _, p := range g.World.QueryPlayers() {
+		h := g.World.GetHealth(p)
 		healthText := fmt.Sprintf("Health: %d / %d", h.CurrentHealth, h.MaxHealth)
 		text.Draw(screen, healthText, mplusNormalFont, fontX, fontY, color.White)
 		fontY += 16
-		ac := p.Components[g.Components.Armor].(*components.Armor)
+		ac := g.World.GetArmor(p)
 		acText := fmt.Sprintf("Armor Class: %d", ac.ArmorClass)
 		text.Draw(screen, acText, mplusNormalFont, fontX, fontY, color.White)
 		fontY += 16
 		defText := fmt.Sprintf("Defense: %d", ac.Defense)
 		text.Draw(screen, defText, mplusNormalFont, fontX, fontY, color.White)
 		fontY += 16
-		wpn := p.Components[g.Components.MeleeWeapon].(*components.MeleeWeapon)
+		wpn := g.World.GetMeleeWeapon(p)
 		dmg := fmt.Sprintf("Damage: %d - %d", wpn.MinimumDamage, wpn.MaximumDamage)
 		text.Draw(screen, dmg, mplusNormalFont, fontX, fontY, color.White)
 		fontY += 16

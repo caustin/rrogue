@@ -19,7 +19,6 @@ type AutoMoveState struct {
 }
 
 func TakePlayerAction(g *Game) bool {
-	players := g.WorldTags["players"]
 	turnTaken := false
 
 	// Initialize auto-move state if needed
@@ -85,8 +84,8 @@ func TakePlayerAction(g *Game) bool {
 
 	level := g.Map.CurrentLevel
 
-	for _, result := range g.World.Query(players) {
-		pos := result.Components[g.Components.Position].(*components.Position)
+	for _, result := range g.World.QueryPlayers() {
+		pos := g.World.GetPosition(result)
 		index := level.GetIndexFromXY(pos.X+x, pos.Y+y)
 
 		tile := level.Tiles[index]
@@ -102,7 +101,7 @@ func TakePlayerAction(g *Game) bool {
 				//Its a tile with a monster -- Fight it
 				monsterPosition := components.Position{X: pos.X + x, Y: pos.Y + y}
 
-				AttackSystem(g, pos, &monsterPosition)
+				g.Systems.Combat.ProcessAttack(pos, &monsterPosition)
 			}
 		}
 
@@ -135,10 +134,9 @@ func processAutoMovement(g *Game) bool {
 	}
 
 	level := g.Map.CurrentLevel
-	players := g.WorldTags["players"]
 
-	for _, result := range g.World.Query(players) {
-		pos := result.Components[g.Components.Position].(*components.Position)
+	for _, result := range g.World.QueryPlayers() {
+		pos := g.World.GetPosition(result)
 
 		dx := g.AutoMoveState.Direction.dx
 		dy := g.AutoMoveState.Direction.dy
@@ -158,7 +156,7 @@ func processAutoMovement(g *Game) bool {
 		if level.Tiles[nextIndex].Blocked {
 			g.AutoMoveState.Active = false
 			monsterPosition := components.Position{X: nextX, Y: nextY}
-			AttackSystem(g, pos, &monsterPosition)
+			g.Systems.Combat.ProcessAttack(pos, &monsterPosition)
 			return true
 		}
 
@@ -184,11 +182,10 @@ func processAutoMovement(g *Game) bool {
 
 // executePlayerMove performs a single player move in the specified direction
 func executePlayerMove(g *Game, dx, dy int) bool {
-	players := g.WorldTags["players"]
 	level := g.Map.CurrentLevel
 
-	for _, result := range g.World.Query(players) {
-		pos := result.Components[g.Components.Position].(*components.Position)
+	for _, result := range g.World.QueryPlayers() {
+		pos := g.World.GetPosition(result)
 		index := level.GetIndexFromXY(pos.X+dx, pos.Y+dy)
 
 		tile := level.Tiles[index]
@@ -203,7 +200,7 @@ func executePlayerMove(g *Game, dx, dy int) bool {
 		} else if tile.TileType != level2.WALL {
 			// Attack monster
 			monsterPosition := components.Position{X: pos.X + dx, Y: pos.Y + dy}
-			AttackSystem(g, pos, &monsterPosition)
+			g.Systems.Combat.ProcessAttack(pos, &monsterPosition)
 			return true
 		}
 	}
@@ -213,10 +210,8 @@ func executePlayerMove(g *Game, dx, dy int) bool {
 
 // isMonsterVisible checks if any monster is visible from the current position
 func isMonsterVisible(g *Game, level level2.Level, playerPos *components.Position) bool {
-	monsters := g.WorldTags["monsters"]
-
-	for _, monster := range g.World.Query(monsters) {
-		monsterPos := monster.Components[g.Components.Position].(*components.Position)
+	for _, monster := range g.World.QueryMonsters() {
+		monsterPos := g.World.GetPosition(monster)
 		if level.PlayerVisible.IsVisible(monsterPos.X, monsterPos.Y) {
 			return true
 		}

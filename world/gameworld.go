@@ -1,16 +1,16 @@
-package game
+package world
 
 import (
+	"github.com/bytearena/ecs"
 	"github.com/caustin/rrogue/components"
 	"github.com/caustin/rrogue/level"
 	"github.com/caustin/rrogue/utils"
 	"log"
 
-	"github.com/bytearena/ecs"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
-// Components holds all ECS component references
+// ComponentReferences holds all ECS component references
 type ComponentReferences struct {
 	Position    *ecs.Component
 	Renderable  *ecs.Component
@@ -23,7 +23,90 @@ type ComponentReferences struct {
 	Player      *ecs.Component
 }
 
-func InitializeWorld(startingLevel level.Level) (*ecs.Manager, map[string]ecs.Tag, *ComponentReferences) {
+// GameWorld implements WorldService and manages the ECS world
+type GameWorld struct {
+	manager    *ecs.Manager
+	tags       map[string]ecs.Tag
+	components *ComponentReferences
+}
+
+// NewGameWorld creates a new GameWorld with initialized entities
+func NewGameWorld(startingLevel level.Level) *GameWorld {
+	manager, tags, components := initializeWorld(startingLevel)
+	return &GameWorld{
+		manager:    manager,
+		tags:       tags,
+		components: components,
+	}
+}
+
+// QueryPlayers returns all player entities
+func (w *GameWorld) QueryPlayers() []*ecs.QueryResult {
+	return w.manager.Query(w.tags["players"])
+}
+
+// QueryMonsters returns all monster entities
+func (w *GameWorld) QueryMonsters() []*ecs.QueryResult {
+	return w.manager.Query(w.tags["monsters"])
+}
+
+// QueryRenderables returns all renderable entities
+func (w *GameWorld) QueryRenderables() []*ecs.QueryResult {
+	return w.manager.Query(w.tags["renderables"])
+}
+
+// QueryMessengers returns all entities with user messages
+func (w *GameWorld) QueryMessengers() []*ecs.QueryResult {
+	return w.manager.Query(w.tags["messengers"])
+}
+
+// GetPosition returns the position component of an entity
+func (w *GameWorld) GetPosition(entity *ecs.QueryResult) *components.Position {
+	return entity.Components[w.components.Position].(*components.Position)
+}
+
+// GetHealth returns the health component of an entity
+func (w *GameWorld) GetHealth(entity *ecs.QueryResult) *components.Health {
+	return entity.Components[w.components.Health].(*components.Health)
+}
+
+// GetArmor returns the armor component of an entity
+func (w *GameWorld) GetArmor(entity *ecs.QueryResult) *components.Armor {
+	return entity.Components[w.components.Armor].(*components.Armor)
+}
+
+// GetMeleeWeapon returns the melee weapon component of an entity
+func (w *GameWorld) GetMeleeWeapon(entity *ecs.QueryResult) *components.MeleeWeapon {
+	return entity.Components[w.components.MeleeWeapon].(*components.MeleeWeapon)
+}
+
+// GetName returns the name component of an entity
+func (w *GameWorld) GetName(entity *ecs.QueryResult) *components.Name {
+	return entity.Components[w.components.Name].(*components.Name)
+}
+
+// GetUserMessage returns the user message component of an entity
+func (w *GameWorld) GetUserMessage(entity *ecs.QueryResult) *components.UserMessage {
+	return entity.Components[w.components.UserMessage].(*components.UserMessage)
+}
+
+// GetRenderable returns the renderable component of an entity
+func (w *GameWorld) GetRenderable(entity *ecs.QueryResult) *components.Renderable {
+	return entity.Components[w.components.Renderable].(*components.Renderable)
+}
+
+// DisposeEntity removes an entity from the world
+func (w *GameWorld) DisposeEntity(entity *ecs.QueryResult) {
+	w.manager.DisposeEntity(entity.Entity)
+}
+
+// GetManager returns the raw ECS manager for advanced use cases
+func (w *GameWorld) GetManager() *ecs.Manager {
+	return w.manager
+}
+
+// initializeWorld creates and populates the ECS world (moved from game package)
+func initializeWorld(startingLevel level.Level) (*ecs.Manager, map[string]ecs.Tag, *ComponentReferences) {
 	tags := make(map[string]ecs.Tag)
 	manager := ecs.NewManager()
 

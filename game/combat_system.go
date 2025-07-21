@@ -13,8 +13,8 @@ func AttackSystem(g *Game, attackerPosition *components.Position, defenderPositi
 	var defender *ecs.QueryResult = nil
 
 	//Get the attacker and defender if either is a player
-	for _, playerCombatant := range g.World.Query(g.WorldTags["players"]) {
-		pos := playerCombatant.Components[g.Components.Position].(*components.Position)
+	for _, playerCombatant := range g.World.QueryPlayers() {
+		pos := g.World.GetPosition(playerCombatant)
 
 		if pos.IsEqual(attackerPosition) {
 			//This is the attacker
@@ -26,8 +26,8 @@ func AttackSystem(g *Game, attackerPosition *components.Position, defenderPositi
 	}
 
 	//Get the attacker and defender if either is a monster
-	for _, cbt := range g.World.Query(g.WorldTags["monsters"]) {
-		pos := cbt.Components[g.Components.Position].(*components.Position)
+	for _, cbt := range g.World.QueryMonsters() {
+		pos := g.World.GetPosition(cbt)
 
 		if pos.IsEqual(attackerPosition) {
 			//This is the attacker
@@ -43,17 +43,17 @@ func AttackSystem(g *Game, attackerPosition *components.Position, defenderPositi
 		return
 	}
 	//Grab the required information
-	defenderArmor := defender.Components[g.Components.Armor].(*components.Armor)
-	defenderHealth := defender.Components[g.Components.Health].(*components.Health)
-	defenderName := defender.Components[g.Components.Name].(*components.Name).Label
-	defenderMessage := defender.Components[g.Components.UserMessage].(*components.UserMessage)
+	defenderArmor := g.World.GetArmor(defender)
+	defenderHealth := g.World.GetHealth(defender)
+	defenderName := g.World.GetName(defender).Label
+	defenderMessage := g.World.GetUserMessage(defender)
 
-	attackerWeapon := attacker.Components[g.Components.MeleeWeapon].(*components.MeleeWeapon)
-	attackerName := attacker.Components[g.Components.Name].(*components.Name).Label
-	attackerMessage := attacker.Components[g.Components.UserMessage].(*components.UserMessage)
+	attackerWeapon := g.World.GetMeleeWeapon(attacker)
+	attackerName := g.World.GetName(attacker).Label
+	attackerMessage := g.World.GetUserMessage(attacker)
 
 	//if the attacker is dead, don't let them attackerWeapon
-	if attacker.Components[g.Components.Health].(*components.Health).CurrentHealth <= 0 {
+	if g.World.GetHealth(attacker).CurrentHealth <= 0 {
 		return
 	}
 	//Roll a d10 to hit
@@ -79,10 +79,10 @@ func AttackSystem(g *Game, attackerPosition *components.Position, defenderPositi
 			} else {
 				// Monster died - clean up tile and dispose entity
 				level := g.Map.CurrentLevel
-				pos := defender.Components[g.Components.Position].(*components.Position)
+				pos := g.World.GetPosition(defender)
 				tile := level.Tiles[level.GetIndexFromXY(pos.X, pos.Y)]
 				tile.Blocked = false
-				g.World.DisposeEntity(defender.Entity)
+				g.World.DisposeEntity(defender)
 			}
 		}
 

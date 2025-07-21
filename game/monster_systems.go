@@ -10,13 +10,13 @@ func UpdateMonster(game *Game) {
 	l := game.Map.CurrentLevel
 	playerPosition := components.Position{}
 
-	for _, plr := range game.World.Query(game.WorldTags["players"]) {
-		pos := plr.Components[game.Components.Position].(*components.Position)
+	for _, plr := range game.World.QueryPlayers() {
+		pos := game.World.GetPosition(plr)
 		playerPosition.X = pos.X
 		playerPosition.Y = pos.Y
 	}
-	for _, result := range game.World.Query(game.WorldTags["monsters"]) {
-		pos := result.Components[game.Components.Position].(*components.Position)
+	for _, result := range game.World.QueryMonsters() {
+		pos := game.World.GetPosition(result)
 		//mon := result.Components[monster].(*Monster)
 
 		monsterSees := fov.New()
@@ -25,7 +25,7 @@ func UpdateMonster(game *Game) {
 
 			if pos.GetManhattanDistance(&playerPosition) == 1 {
 				//The monster is right next to the player.  Just smack him down
-				AttackSystem(game, pos, &playerPosition)
+				game.Systems.Combat.ProcessAttack(pos, &playerPosition)
 
 			} else {
 				astar := level.AStar{}
