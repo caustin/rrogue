@@ -38,9 +38,25 @@ func NewGame() *Game {
 	// Register all event handlers
 	g.Systems.RegisterAllHandlers()
 
-	// Register temporary event handlers for map management
-	g.EventBus.Subscribe(events.DeathEventType, g.handleDeathEvent)
-	g.EventBus.Subscribe(events.GameOverEventType, g.handleGameOverEvent)
+	// Wire up GameStateSystem references to Game struct fields
+	if g.Systems.GameState != nil {
+		// Cast TurnState to int pointer for GameStateSystem
+		turnPtr := (*int)(&g.Turn)
+		g.Systems.GameState.SetGameReferences(turnPtr, &g.TurnCounter)
+	}
+
+	// Wire up MapBridge with tile unblocking function
+	if g.Systems.MapBridge != nil {
+		unblockTileFunc := func(x, y int) {
+			level := g.Map.CurrentLevel
+			tile := level.Tiles[level.GetIndexFromXY(x, y)]
+			tile.Blocked = false
+		}
+		g.Systems.MapBridge.SetGameReference(unblockTileFunc)
+	}
+
+	// Temporary event handlers are no longer needed -
+	// MapBridge handles tile cleanup and GameStateSystem handles game over
 
 	g.Turn = WaitingForPlayerInput
 	g.TurnCounter = 0
@@ -52,12 +68,25 @@ func (g *Game) Update() error {
 	switch g.Turn {
 	case WaitingForPlayerInput:
 		if TakePlayerAction(g) {
-			g.Turn = ProcessingMonsterTurn
-			g.TurnCounter++
+			// Publish turn change event instead of direct assignment
+			if g.Systems.GameState != nil {
+				g.Systems.GameState.ChangeTurn(systems.ProcessingMonsterTurn)
+				g.Systems.GameState.IncrementTurn()
+			} else {
+				// Fallback for during migration
+				g.Turn = ProcessingMonsterTurn
+				g.TurnCounter++
+			}
 		}
 	case ProcessingMonsterTurn:
 		UpdateMonster(g)
-		g.Turn = WaitingForPlayerInput
+		// Publish turn change event instead of direct assignment
+		if g.Systems.GameState != nil {
+			g.Systems.GameState.ChangeTurn(systems.WaitingForPlayerInput)
+		} else {
+			// Fallback for during migration
+			g.Turn = WaitingForPlayerInput
+		}
 	default:
 		panic("unhandled default case")
 	}
@@ -80,24 +109,4 @@ func (g *Game) Draw(screen *ebiten.Image) {
 // Layout will return the screen dimensions.
 func (g *Game) Layout(w, h int) (int, int) {
 	return g.GameData.TileWidth * g.GameData.ScreenWidth, g.GameData.TileHeight * g.GameData.ScreenHeight
-}
-
-// handleDeathEvent processes death events for map cleanup (temporary)
-func (g *Game) handleDeathEvent(event events.Event) {
-	deathEvent := event.(*events.DeathEvent)
-
-	if deathEvent.IsPlayer {
-		// Player died - set game over
-		g.Turn = GameOver
-	} else {
-		// Monster died - unblock the tile
-		level := g.Map.CurrentLevel
-		tile := level.Tiles[level.GetIndexFromXY(deathEvent.Position.X, deathEvent.Position.Y)]
-		tile.Blocked = false
-	}
-}
-
-// handleGameOverEvent processes game over events (temporary)
-func (g *Game) handleGameOverEvent(event events.Event) {
-	g.Turn = GameOver
 }

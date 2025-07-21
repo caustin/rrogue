@@ -37,13 +37,49 @@ func NewTurnEndEvent(turnType string, turnCounter int) *TurnEndEvent {
 // GameOverEvent represents the game ending
 type GameOverEvent struct {
 	BaseEvent
-	Reason string // "player_death", "victory", etc.
+	Reason    string // "player_death", "victory", etc.
+	FinalTurn int    // Turn number when game ended
 }
 
-func NewGameOverEvent(reason string) *GameOverEvent {
+func NewGameOverEvent(reason string, finalTurn int) *GameOverEvent {
 	return &GameOverEvent{
 		BaseEvent: NewBaseEvent(GameOverEventType),
 		Reason:    reason,
+		FinalTurn: finalTurn,
+	}
+}
+
+// TurnChangeEvent represents a change in turn state
+type TurnChangeEvent struct {
+	BaseEvent
+	FromState string
+	ToState   string
+	TurnCount int
+}
+
+// NewTurnChangeEvent creates a new turn change event
+func NewTurnChangeEvent(fromState, toState string, turnCount int) *TurnChangeEvent {
+	return &TurnChangeEvent{
+		BaseEvent: NewBaseEvent(TurnChangeEventType),
+		FromState: fromState,
+		ToState:   toState,
+		TurnCount: turnCount,
+	}
+}
+
+// TurnCounterEvent represents turn counter updates
+type TurnCounterEvent struct {
+	BaseEvent
+	TurnCount int
+	Increment int
+}
+
+// NewTurnCounterEvent creates a new turn counter event
+func NewTurnCounterEvent(turnCount, increment int) *TurnCounterEvent {
+	return &TurnCounterEvent{
+		BaseEvent: NewBaseEvent(TurnCounterEventType),
+		TurnCount: turnCount,
+		Increment: increment,
 	}
 }
 

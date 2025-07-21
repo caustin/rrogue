@@ -23,9 +23,11 @@ const (
 	MoveEventType EventType = "move"
 
 	// Game State Events
-	TurnStartEventType EventType = "turn_start"
-	TurnEndEventType   EventType = "turn_end"
-	GameOverEventType  EventType = "game_over"
+	TurnStartEventType   EventType = "turn_start"
+	TurnEndEventType     EventType = "turn_end"
+	TurnChangeEventType  EventType = "turn_change"
+	TurnCounterEventType EventType = "turn_counter"
+	GameOverEventType    EventType = "game_over"
 
 	// Map Events
 	TileBlockedEventType   EventType = "tile_blocked"

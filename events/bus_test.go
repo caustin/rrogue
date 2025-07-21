@@ -87,7 +87,7 @@ func TestEventBus_GetSubscriberCount(t *testing.T) {
 func TestEventCreation(t *testing.T) {
 	// Test that events are created with correct timestamps
 	before := time.Now()
-	event := NewGameOverEvent("player_death")
+	event := NewGameOverEvent("player_death", 10)
 	after := time.Now()
 
 	if event.Timestamp().Before(before) || event.Timestamp().After(after) {

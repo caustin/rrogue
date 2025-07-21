@@ -31,10 +31,12 @@ func (mb *MapBridge) SetGameReference(game interface{}) {
 func (mb *MapBridge) HandleEntityDeath(event events.Event) {
 	deathEvent := event.(*events.DeathEvent)
 
-	if !deathEvent.IsPlayer {
-		// For monster death, we need to unblock the tile
-		// This is a temporary hack until we have proper MapSystem
-		// The actual tile unblocking will need to be done by the caller
-		// since we can't access the map from here without circular dependencies
+	if !deathEvent.IsPlayer && mb.gameRef != nil {
+		// For monster death, unblock the tile
+		// This is a simple approach during migration - we'll cast to a function
+		// that can handle the tile unblocking for us
+		if unblockFunc, ok := mb.gameRef.(func(x, y int)); ok {
+			unblockFunc(deathEvent.Position.X, deathEvent.Position.Y)
+		}
 	}
 }

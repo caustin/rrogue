@@ -75,7 +75,12 @@ func AttackSystem(g *Game, attackerPosition *components.Position, defenderPositi
 			defenderMessage.DeadMessage = fmt.Sprintf("%s has died!\n", defenderName)
 			if defenderName == "Player" {
 				defenderMessage.GameStateMessage = "Game Over!\n"
-				g.Turn = GameOver
+				// Use GameStateSystem if available, otherwise fallback
+				if g.Systems.GameState != nil {
+					g.Systems.GameState.TriggerGameOver("player_death")
+				} else {
+					g.Turn = GameOver
+				}
 			} else {
 				// Monster died - clean up tile and dispose entity
 				level := g.Map.CurrentLevel
