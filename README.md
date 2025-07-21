@@ -23,7 +23,6 @@ This is a **learning project** currently featuring:
 ## Prerequisites
 
 - [Go](https://golang.org/dl/) 1.19 or later
-- Git
 
 ## Getting Started
 
