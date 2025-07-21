@@ -55,9 +55,11 @@ RRogue is a roguelike game built with Go using an Entity Component System (ECS) 
 │   └── level.go             # Level data structures
 ├── systems/                    # Event-driven system implementations
 │   ├── combat.go            # Event-driven combat system
+│   ├── gamestate.go         # Game state management system
+│   ├── ui.go                # User interface and message system
 │   ├── registry.go          # System registry and lifecycle management
 │   ├── gamebridge.go        # Temporary bridge for game state access
-│   └── mapbridge.go         # Temporary bridge for map operations
+│   └── mapbridge.go         # Map tile management bridge
 ├── utils/                      # Utility functions
 │   ├── dice.go              # Random number generation
 │   ├── rect.go              # Rectangle utilities
@@ -177,18 +179,32 @@ type EventType string
 #### Game State Events (events/game_events.go)
 - **TurnStartEvent**: Beginning of player/monster turn
 - **TurnEndEvent**: End of turn
-- **GameOverEvent**: Game termination
+- **TurnChangeEvent**: Turn state transitions between player/monster/game over
+- **TurnCounterEvent**: Turn counter updates and increments
+- **GameOverEvent**: Game termination (enhanced with FinalTurn field)
 - **TileBlockedEvent/TileUnblockedEvent**: Map state changes
 
 ### Event Flow Example
 
+#### Combat and Death Sequence
 ```
 Player Attack Sequence:
-1. TakePlayerAction() → AttackEvent
-2. CombatSystem.HandleAttack() → DamageEvent
-3. CombatSystem.HandleDamage() → DeathEvent (if fatal)
-4. GameStateSystem.HandleDeath() → GameOverEvent (if player)
-5. MapSystem.HandleEntityDeath() → TileUnblockedEvent
+1. TakePlayerAction() → CombatSystem.ProcessAttack() → AttackEvent
+2. CombatSystem.HandleAttack() → MessageEvent + DamageEvent  
+3. UISystem.HandleMessage() → adds message to queue
+4. CombatSystem.HandleDamage() → DeathEvent (if fatal)
+5. GameStateSystem.HandleDeath() → GameOverEvent (if player death)
+6. MapBridge.HandleEntityDeath() → unblocks tile (if monster death)
+```
+
+#### Turn Transition Sequence  
+```
+Player Turn Complete:
+1. TakePlayerAction() returns true → GameStateSystem.ChangeTurn()
+2. GameStateSystem.ChangeTurn() → TurnChangeEvent + IncrementTurn()
+3. GameStateSystem.HandleTurnChange() → syncs g.Turn to ProcessingMonsterTurn
+4. UpdateMonster() processes AI → GameStateSystem.ChangeTurn() 
+5. GameStateSystem.HandleTurnChange() → syncs g.Turn to WaitingForPlayerInput
 ```
 
 ## World Service
@@ -259,8 +275,9 @@ New systems that use dependency injection and event messaging:
 type SystemRegistry struct {
     Combat     *CombatSystem
     GameState  *GameStateSystem
-    Map        *MapSystem
+    UI         *UISystem
     GameBridge *GameBridge
+    MapBridge  *MapBridge
     
     world    world.WorldService
     eventBus *events.EventBus
@@ -292,18 +309,51 @@ type CombatSystem struct {
 - `HandleDamage(event events.Event)`: Apply damage and check for death
 - `ProcessAttack(attackerPos, defenderPos)`: Initiate attack sequence
 
-#### GameBridge (systems/gamebridge.go)
+#### GameStateSystem (systems/gamestate.go)
 ```go
-type GameBridge struct {
+type GameStateSystem struct {
+    world    world.WorldService
     eventBus *events.EventBus
-    gameRef  interface{}
+    
+    currentState TurnState
+    turnCounter  int
+    mutex        sync.RWMutex
 }
 ```
 
 **Responsibilities:**
-- Temporary bridge between event system and legacy game state
-- Handle death events for game over conditions
-- Provide transition path during architecture migration
+- Centralized turn state management (WaitingForPlayerInput, ProcessingMonsterTurn, GameOver)
+- Handle player death and trigger game over events
+- Manage turn transitions through events
+- Thread-safe state synchronization with Game struct
+
+**Key Methods:**
+- `HandleDeath(event events.Event)`: Process entity deaths and trigger game over for players
+- `ChangeTurn(toState TurnState)`: Publish turn change events  
+- `TriggerGameOver(reason string)`: Publish game over events
+- `IncrementTurn()`: Increment and publish turn counter events
+
+#### UISystem (systems/ui.go)
+```go
+type UISystem struct {
+    world    world.WorldService
+    eventBus *events.EventBus
+    
+    messages []UIMessage
+    mutex    sync.RWMutex
+}
+```
+
+**Responsibilities:**
+- Event-driven user interface message management
+- Thread-safe message queue with persistence across frames
+- Replace direct UserMessage component manipulation
+- Latest-first message ordering for better UX
+
+**Key Methods:**
+- `HandleMessage(event events.Event)`: Process MessageEvent and add to queue
+- `GetMessageTexts()`: Return current messages for display (latest first)
+- `AddMessage(text, messageType string)`: Direct message addition
 
 #### MapBridge (systems/mapbridge.go)
 ```go
@@ -314,9 +364,9 @@ type MapBridge struct {
 ```
 
 **Responsibilities:**
-- Temporary bridge between event system and map operations
-- Handle entity death for tile cleanup
-- Manage spatial state until proper MapSystem is implemented
+- Handle entity death events for tile cleanup
+- Unblock map tiles when monsters die
+- Bridge between event system and map operations during migration
 
 ## Game Loop
 
@@ -515,21 +565,28 @@ func TestCombatSystem_HandleAttack(t *testing.T) {
 
 ### Current State
 
-**Migration Status**: Event-driven combat system is fully implemented and operational
-- ✅ SystemRegistry pattern implemented for system lifecycle management
-- ✅ CombatSystem migrated to event-driven architecture with dependency injection
-- ✅ Legacy AttackSystem calls replaced with new CombatSystem.ProcessAttack
-- ✅ Temporary event handlers in Game struct for death and game over events
-- ✅ WorldService interface provides clean ECS abstraction
+**Migration Status**: Core event-driven systems are fully implemented and operational
 
-**Temporary Bridges**: GameBridge and MapBridge handle legacy integration during transition
+#### ✅ **Completed Migrations**
+- ✅ **CombatSystem**: Event-driven combat with dependency injection
+- ✅ **GameStateSystem**: Centralized turn state management and game over handling  
+- ✅ **UISystem**: Event-driven user interface message management
+- ✅ **SystemRegistry**: Lifecycle management for all event-driven systems
+- ✅ **Event Integration**: Combat messages flow through UISystem instead of direct component access
+- ✅ **Temporary Handler Removal**: Game struct no longer handles events directly
+
+#### 🔄 **Current Architecture**
+- SystemRegistry manages CombatSystem, GameStateSystem, UISystem, and bridge systems
+- GameStateSystem handles all turn transitions and game over conditions
+- UISystem provides thread-safe message queue with latest-first ordering
+- MapBridge handles tile cleanup during transition period
+- WorldService interface provides clean ECS abstraction
 
 ### Planned Improvements
 
 1. **Complete System Migration**:
-   - Implement proper GameStateSystem to replace temporary event handlers
-   - Implement proper MapSystem to replace temporary map bridges
-   - Remove legacy AttackSystem function (marked low priority)
+   - Implement proper MapSystem to replace MapBridge
+   - Remove legacy AttackSystem function (marked low priority)  
    - Migrate remaining legacy systems to event-driven architecture
 
 2. **Enhanced Event System**:
