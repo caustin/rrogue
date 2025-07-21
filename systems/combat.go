@@ -38,7 +38,6 @@ func (cs *CombatSystem) HandleAttack(event events.Event) {
 	attackerWeapon := cs.world.GetMeleeWeapon(attackEvent.Attacker)
 	attackerName := cs.world.GetName(attackEvent.Attacker).Label
 	defenderName := cs.world.GetName(attackEvent.Defender).Label
-	attackerMessage := cs.world.GetUserMessage(attackEvent.Attacker)
 
 	// Check if attacker is alive
 	if cs.world.GetHealth(attackEvent.Attacker).CurrentHealth <= 0 {
@@ -56,18 +55,22 @@ func (cs *CombatSystem) HandleAttack(event events.Event) {
 			damageDone = 0
 		}
 
-		// Set attack message
-		attackerMessage.AttackMessage = fmt.Sprintf("%s swings %s at %s and hits for %d health.\n",
+		// Publish attack message event
+		attackMessage := fmt.Sprintf("%s swings %s at %s and hits for %d health.\n",
 			attackerName, attackerWeapon.Name, defenderName, damageDone)
+		messageEvent := events.NewMessageEvent(attackMessage, "attack")
+		cs.eventBus.Publish(messageEvent)
 
 		// Publish damage event
 		damageEvent := events.NewDamageEvent(attackEvent.Defender, damageDone, attackerWeapon.Name, false)
 		cs.eventBus.Publish(damageEvent)
 
 	} else {
-		// Miss
-		attackerMessage.AttackMessage = fmt.Sprintf("%s swings %s at %s and misses.\n",
+		// Publish miss message event
+		missMessage := fmt.Sprintf("%s swings %s at %s and misses.\n",
 			attackerName, attackerWeapon.Name, defenderName)
+		messageEvent := events.NewMessageEvent(missMessage, "attack")
+		cs.eventBus.Publish(messageEvent)
 	}
 }
 
@@ -85,13 +88,16 @@ func (cs *CombatSystem) HandleDamage(event events.Event) {
 		defenderName := cs.world.GetName(damageEvent.Target).Label
 		isPlayer := defenderName == "Player"
 
-		// Set death message
-		defenderMessage := cs.world.GetUserMessage(damageEvent.Target)
-		defenderMessage.DeadMessage = fmt.Sprintf("%s has died!\n", defenderName)
+		// Publish death message event
+		deathMessage := fmt.Sprintf("%s has died!\n", defenderName)
+		messageEvent := events.NewMessageEvent(deathMessage, "death")
+		cs.eventBus.Publish(messageEvent)
 
 		// Handle death immediately (temporary until we have proper event handlers)
 		if isPlayer {
-			defenderMessage.GameStateMessage = "Game Over!\n"
+			gameOverMessage := "Game Over!\n"
+			gameOverEvent := events.NewMessageEvent(gameOverMessage, "gamestate")
+			cs.eventBus.Publish(gameOverEvent)
 			// TODO: Set game over state via event
 		} else {
 			// Clean up the monster entity

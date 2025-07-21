@@ -49,35 +49,12 @@ func ProcessUserLog(g *Game, screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(float64(0.), float64(uiLocation))
 	screen.DrawImage(userLogImg, op)
-	tmpMessages := make([]string, 0, 5)
-	anyMessages := false
-
-	for _, m := range g.World.QueryMessengers() {
-		messages := g.World.GetUserMessage(m)
-		if messages.AttackMessage != "" {
-			tmpMessages = append(tmpMessages, messages.AttackMessage)
-			anyMessages = true
-			//fmt.Printf(messages.AttackMessage)
-			messages.AttackMessage = ""
+	// Get messages from UISystem instead of polling entity components
+	if g.Systems.UI != nil {
+		currentMessages := g.Systems.UI.GetMessageTexts()
+		if len(currentMessages) > 0 {
+			lastText = currentMessages
 		}
-	}
-	for _, m := range g.World.QueryMessengers() {
-		messages := g.World.GetUserMessage(m)
-		if messages.DeadMessage != "" {
-			tmpMessages = append(tmpMessages, messages.DeadMessage)
-			anyMessages = true
-			//fmt.Printf(messages.DeadMessage)
-			messages.DeadMessage = ""
-		}
-		if messages.GameStateMessage != "" {
-			tmpMessages = append(tmpMessages, messages.GameStateMessage)
-			anyMessages = true
-			//No need to clear, it's all over
-		}
-
-	}
-	if anyMessages {
-		lastText = tmpMessages
 	}
 	for _, msg := range lastText {
 		if msg != "" {

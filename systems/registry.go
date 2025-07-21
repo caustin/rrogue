@@ -11,6 +11,7 @@ type SystemRegistry struct {
 	GameState  *GameStateSystem
 	Map        *MapSystem
 	GameBridge *GameBridge
+	UI         *UISystem
 
 	// Dependencies
 	world    world.WorldService
@@ -27,6 +28,7 @@ func NewSystemRegistry(world world.WorldService, eventBus *events.EventBus) *Sys
 	// Create systems with dependencies
 	registry.Combat = NewCombatSystem(world, eventBus)
 	registry.GameBridge = NewGameBridge(eventBus)
+	registry.UI = NewUISystem(world, eventBus)
 
 	// For now, create placeholder systems - we'll wire them up properly later
 	// registry.GameState = NewGameStateSystem(eventBus, world, &GameStateAdapter{})
@@ -38,6 +40,7 @@ func NewSystemRegistry(world world.WorldService, eventBus *events.EventBus) *Sys
 // RegisterAllHandlers subscribes all systems to their respective events
 func (r *SystemRegistry) RegisterAllHandlers() {
 	r.Combat.RegisterHandlers()
+	r.UI.RegisterHandlers()
 
 	// Register other systems when they're implemented
 	// if r.GameState != nil {
