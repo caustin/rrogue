@@ -33,11 +33,21 @@ This is a **learning project** currently featuring:
 git clone https://github.com/caustin/rrogue.git
 cd rrogue
 
+# Download dependencies
+go mod download
+
 # Build the game
 go build
 
 # Run the game
 ./rrogue
+```
+
+### Alternative: Run Without Building
+
+```bash
+# Run directly with go run (automatically handles dependencies)
+go run .
 ```
 
 ### Development
